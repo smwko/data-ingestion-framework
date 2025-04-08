@@ -11,7 +11,7 @@ app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Cambia esto por una clave segura
 app.logs = []  # Lista para almacenar logs
 
-# Creamos un handler que guarda los logs en app.logs
+# Handler para capturar logs en la página web
 class WebLogHandler(logging.Handler):
     def __init__(self, app):
         super().__init__()
@@ -21,7 +21,6 @@ class WebLogHandler(logging.Handler):
         log_entry = self.format(record)
         self.app.logs.append(log_entry)
 
-# Configuramos el logger para que también escriba en app.logs
 logger = get_logger()
 web_handler = WebLogHandler(app)
 formatter = logging.Formatter('[%(asctime)s] %(levelname)s - %(message)s')
@@ -32,11 +31,18 @@ logger.addHandler(web_handler)
 spark = SparkSession.builder.appName("DataIngestionDynamic").getOrCreate()
 logger.info("Sesión Spark iniciada")
 
+# Ruta de la carpeta de entrada (donde se suben los archivos JSON)
+INPUT_FOLDER = os.path.join('data', 'input', 'events', 'person')
+
 @app.route('/')
 def index():
-    # Mostramos los últimos 50 logs en la página
+    # Listar archivos en el directorio de entrada (si existe)
+    file_list = []
+    if os.path.exists(INPUT_FOLDER):
+        file_list = os.listdir(INPUT_FOLDER)
+    # Mostrar los últimos 50 logs
     logs = app.logs[-50:]
-    return render_template('index.html', logs=logs)
+    return render_template('index.html', logs=logs, file_list=file_list)
 
 @app.route('/run')
 def run_pipeline():
@@ -59,18 +65,49 @@ def upload_file():
     if file.filename == '':
         flash('No se seleccionó ningún archivo.', 'danger')
         return redirect(url_for('index'))
-    # Guardamos el archivo en la carpeta de entrada
-    input_folder = os.path.join('data', 'input', 'events', 'person')
-    os.makedirs(input_folder, exist_ok=True)
-    file_path = os.path.join(input_folder, file.filename)
+    os.makedirs(INPUT_FOLDER, exist_ok=True)
+    file_path = os.path.join(INPUT_FOLDER, file.filename)
     file.save(file_path)
     flash(f'Archivo {file.filename} subido exitosamente.', 'success')
     logger.info(f'Archivo {file.filename} subido a {file_path}')
+    
+    # Ejecutar el pipeline automáticamente después de subir el archivo
+    try:
+        metadata_config = metadata.load_metadata()
+        engine = DataFlowEngine(spark, metadata_config)
+        engine.run()
+        flash('Pipeline ejecutado correctamente tras la subida.', 'success')
+    except Exception as e:
+        flash(f'Error al ejecutar pipeline: {str(e)}', 'danger')
+        logger.error(f'Error al ejecutar pipeline: {str(e)}')
+    
+    return redirect(url_for('index'))
+
+@app.route('/delete/<filename>')
+def delete_file(filename):
+    file_path = os.path.join(INPUT_FOLDER, filename)
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        flash(f'Archivo {filename} eliminado.', 'success')
+        logger.info(f'Archivo {filename} eliminado.')
+    else:
+        flash(f'Archivo {filename} no encontrado.', 'danger')
+    return redirect(url_for('index'))
+
+@app.route('/delete_all')
+def delete_all():
+    if os.path.exists(INPUT_FOLDER):
+        for f in os.listdir(INPUT_FOLDER):
+            os.remove(os.path.join(INPUT_FOLDER, f))
+        flash('Todos los archivos han sido eliminados.', 'success')
+        logger.info('Todos los archivos han sido eliminados.')
+    else:
+        flash('No hay archivos para eliminar.', 'info')
     return redirect(url_for('index'))
 
 @app.route('/results')
 def results():
-    # Se asume que los archivos se han escrito en:
+    # Se asume que los archivos de salida se encuentran en:
     # data/output/events/person/STANDARD_OK.json y STANDARD_KO.json
     ok_file = os.path.join('data', 'output', 'events', 'person', 'STANDARD_OK.json')
     ko_file = os.path.join('data', 'output', 'events', 'person', 'STANDARD_KO.json')
