@@ -7,158 +7,188 @@
   <title>Data Ingestion Tool</title>
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+    rel="stylesheet">
 </head>
 
 <body>
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container">
-      <a class="navbar-brand" href="{{ url_for('index') }}">Data Ingestion Tool</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="{{ url_for('index') }}">Inicio</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('results') }}">Resultados</a>
-          </li>
-        </ul>
+  <!-- Navbar con fondo blanco y logo de la empresa -->
+  <nav class="bg-white shadow" style="margin-bottom: 120px; padding: 10px 0;">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+      <div class="flex-shrink-0">
+        <a href="{{ url_for('index') }}">
+          <img class="h-10" src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo">
+        </a>
+      </div>
+      <div class="hidden md:block">
+        <div class="ml-10 flex space-x-4">
+          <a href="{{ url_for('index') }}"
+            class="font-medium rounded-lg px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900">Inicio</a>
+          <a href="{{ url_for('results') }}"
+            class="font-medium rounded-lg px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900">Resultados</a>
+        </div>
+      </div>
+      <div class="md:hidden">
+        <button id="mobile-menu-button" type="button"
+          class="text-gray-900 hover:text-blue-600 focus:outline-none focus:text-blue-600">
+          <!-- Icono de menú -->
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
       </div>
     </div>
   </nav>
 
-  <!-- Contenedor de mensajes flash -->
-  <div class="container mt-3">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    {% for category, message in messages %}
-    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-      {{ message }}
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-    {% endfor %}
-    {% endif %}
-    {% endwith %}
-  </div>
-
-  <!-- Contenido principal -->
-  <div class="container mt-5">
-    <div class="row justify-content-center">
-      <div class="col-md-8 text-center">
-        <h1 class="display-4">Bienvenido a Data Ingestion Tool</h1>
-        <p class="lead">
-          Una solución moderna para la ingesta, validación y transformación de datos con PySpark.
-        </p>
-        <div class="d-grid gap-3 col-6 mx-auto">
-          <a href="{{ url_for('run_pipeline') }}" class="btn btn-success btn-lg">Ejecutar Pipeline</a>
-          <!-- Botón que abre el modal para subir archivo JSON -->
-          <button type="button" class="btn btn-secondary btn-lg" data-bs-toggle="modal" data-bs-target="#uploadModal">
-            Cargar Archivo JSON
-          </button>
-        </div>
+    <!-- Contenedor de mensajes flash -->
+    <div class="container mt-3">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      {% for category, message in messages %}
+      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
-    </div>
-
-    <!-- Sección para mostrar archivos cargados -->
-    <div class="mt-5">
-      <h4>Ficheros Cargados</h4>
-      {% if file_list %}
-      <ul class="list-group">
-        {% for file in file_list %}
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-          {{ file }}
-          <a href="{{ url_for('delete_file', filename=file) }}" class="btn btn-sm btn-danger" title="Eliminar">
-            &times;
-          </a>
-        </li>
-        {% endfor %}
-      </ul>
-      <div class="mt-3">
-        <a href="{{ url_for('delete_all') }}" class="btn btn-sm btn-danger">Eliminar todos los archivos</a>
-      </div>
-      {% else %}
-      <p>No hay archivos cargados.</p>
+      {% endfor %}
       {% endif %}
+      {% endwith %}
     </div>
 
-    <div class="mt-5">
-      <h4>Metadata Actual</h4>
-      <div class="border p-3" style="background: #f8f9fa;">
-        <pre>{{ metadata_filename }}</pre>
-      </div>
-      <div class="mt-3">
-        <!-- Aquí aparece el botón para subir un nuevo archivo de metadata -->
-        <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#uploadMetadataModal">
-          Subir nuevo archivo de metadata
-        </button>
-      </div>
-    </div>
+    <!-- Contenido principal -->
+    <div class="container mt-5">
+      <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+          <p>
+            <span class="text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#296cdd] to-[#1fb9df]">
+              Data Ingestion Tool
+          </p>
 
-
-<!-- Modal para subir archivo de metadata -->
-<div class="modal fade" id="uploadMetadataModal" tabindex="-1" aria-labelledby="uploadMetadataModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form action="{{ url_for('upload_metadata') }}" method="post" enctype="multipart/form-data">
-        <div class="modal-header">
-          <h5 class="modal-title" id="uploadMetadataModalLabel">Subir Archivo Metadata</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          <p style="font-family: Poppins; font-size: medium; font-weight: 400; margin-top: 40px; margin-bottom: 50px;">
+            Una solución moderna para la ingesta, validación y transformación de datos con PySpark.
+          </p>
         </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label for="metadataFile" class="form-label">Selecciona un archivo JSON de metadata</label>
-            <input type="file" class="form-control" id="metadataFile" name="metadata_file" accept=".json" required>
+      </div>
+
+      <div class="mt-5">
+        <h5 style="margin-bottom: 20px;">
+          <span style="font-family: Poppins ; font-size: 20px; font-weight: 500; color: #296cdd ">
+            Paso 1. Escoge el archivo de configuración que quieras usar
+          </span>
+        </h5>
+        <div class="mt-3">
+          <!-- Aquí aparece el botón para subir un nuevo archivo de metadata -->
+          <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#uploadMetadataModal"
+            style="margin-bottom: 10px;">Subir archivo</button>
+        </div>
+        <div class="border p-3" style="background: #f8f9fa;">
+          <pre>{{ metadata_filename }}</pre>
+        </div>
+      </div>
+
+
+      <!-- Modal para subir archivo de metadata -->
+      <div class="modal fade" id="uploadMetadataModal" tabindex="-1" aria-labelledby="uploadMetadataModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <form action="{{ url_for('upload_metadata') }}" method="post" enctype="multipart/form-data">
+              <div class="modal-header">
+                <h5 class="modal-title" id="uploadMetadataModalLabel">Subir Archivo Metadata</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+              </div>
+              <div class="modal-body">
+                <div class="mb-3">
+                  <label for="metadataFile" class="form-label">Selecciona un archivo JSON de metadata</label>
+                  <input type="file" class="form-control" id="metadataFile" name="metadata_file" accept=".json"
+                    required>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Subir y Reemplazar</button>
+              </div>
+            </form>
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-primary">Subir y Reemplazar</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
+      </div>
 
-    <!-- Sección para mostrar logs -->
-    <div class="mt-5">
-      <h4>Logs Recientes</h4>
-      <div class="border p-3" style="height: 200px; overflow-y: scroll; background: #f8f9fa;">
-        <pre style="margin: 0;">{% for log in logs %}{{ log }}
+
+      <!-- Sección para mostrar archivos cargados -->
+      <div class="mt-5">
+        <h5 style="margin-bottom: 20px;">
+          <span style="font-family: Poppins ; font-size: 20px; font-weight: 500; color: #296cdd ">
+            Paso 2. Escoge los archivos JSON que quieras ingestar
+          </span>
+        </h5>
+        <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#uploadModal"
+          style="margin-bottom: 10px;">Subir archivo</button>
+        <h4>Ficheros Cargados</h4>
+        {% if file_list %}
+        <ul class="list-group">
+          {% for file in file_list %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            {{ file }}
+            <a href="{{ url_for('delete_file', filename=file) }}" class="btn btn-sm btn-danger" title="Eliminar">
+              &times;
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+        <div class="mt-3">
+          <a href="{{ url_for('delete_all') }}" class="btn btn-sm btn-danger">Eliminar todos los archivos</a>
+        </div>
+        {% else %}
+        <p>No hay archivos cargados.</p>
+        {% endif %}
+      </div>
+
+
+
+      <!-- Sección para mostrar logs -->
+      <div class="mt-5  mb-5">
+        <h5 style="margin-bottom: 20px;">
+          <span style="font-family: Poppins ; font-size: 20px; font-weight: 500; color: #244989 ">
+            Puedes revisar los logs de la ingesta
+          </span>
+        </h5>
+        <div class="border p-3" style="height: 200px; overflow-y: scroll; background: #f8f9fa;">
+          <pre style="margin: 0;">{% for log in logs %}{{ log }}
 {% endfor %}</pre>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Modal para subir archivo JSON -->
-  <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
-          <div class="modal-header">
-            <h5 class="modal-title" id="uploadModalLabel">Subir Archivo JSON</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-          </div>
-          <div class="modal-body">
-            <div class="mb-3">
-              <label for="jsonFile" class="form-label">Selecciona un archivo JSON</label>
-              <input type="file" class="form-control" id="jsonFile" name="json_file" accept=".json" required>
+    <!-- Modal para subir archivo JSON -->
+    <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
+            <div class="modal-header">
+              <h5 class="modal-title" id="uploadModalLabel">Subir Archivo JSON</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-            <button type="submit" class="btn btn-primary">Subir</button>
-          </div>
-        </form>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="jsonFile" class="form-label">Selecciona un archivo JSON</label>
+                <input type="file" class="form-control" id="jsonFile" name="json_file" accept=".json" required>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-primary">Subir</button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Bootstrap JS Bundle -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
