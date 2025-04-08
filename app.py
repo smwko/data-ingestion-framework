@@ -6,6 +6,7 @@ from pyspark.sql import SparkSession
 from src.config import metadata
 from src.engine.dataflow_engine import DataFlowEngine
 from src.utils.logger import get_logger
+from src.utils.json_to_html_table import json_lines_to_html_table
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Cambia esto por una clave segura
@@ -105,23 +106,17 @@ def delete_all():
         flash('No hay archivos para eliminar.', 'info')
     return redirect(url_for('index'))
 
+
 @app.route('/results')
 def results():
-    # Se asume que los archivos de salida se encuentran en:
-    # data/output/events/person/STANDARD_OK.json y STANDARD_KO.json
-    ok_file = os.path.join('data', 'output', 'events', 'person', 'STANDARD_OK.json')
-    ko_file = os.path.join('data', 'output', 'events', 'person', 'STANDARD_KO.json')
-    standard_ok = []
-    standard_ko = []
+    ok_filepath = os.path.join('data', 'output', 'events', 'person', 'STANDARD_OK.json')
+    ko_filepath = os.path.join('data', 'output', 'discards', 'person', 'STANDARD_KO.json')
     
-    if os.path.exists(ok_file):
-        with open(ok_file, 'r', encoding='utf-8') as f:
-            standard_ok = json.load(f)
-    if os.path.exists(ko_file):
-        with open(ko_file, 'r', encoding='utf-8') as f:
-            standard_ko = json.load(f)
-            
-    return render_template('results.html', standard_ok=standard_ok, standard_ko=standard_ko)
+    ok_table = json_lines_to_html_table(ok_filepath, table_id="standard_ok_table", caption="Resultados STANDARD_OK")
+    ko_table = json_lines_to_html_table(ko_filepath, table_id="standard_ko_table", caption="Resultados STANDARD_KO")
+    
+    return render_template('results.html', ok_table=ok_table, ko_table=ko_table)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
