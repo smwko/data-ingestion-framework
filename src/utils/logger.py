@@ -9,3 +9,12 @@ def get_logger():
         handler.setFormatter(formatter)
         logger.addHandler(handler)
     return logger
+
+class WebLogHandler(logging.Handler):
+    def __init__(self, app):
+        super().__init__()
+        self.app = app
+
+    def emit(self, record):
+        log_entry = self.format(record)
+        self.app.logs.append(log_entry)
