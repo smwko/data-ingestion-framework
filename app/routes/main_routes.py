@@ -34,7 +34,8 @@ def run_pipeline():
         flash(f'Error al ejecutar pipeline: {str(e)}', 'danger')
         current_app.logger.exception("Error ejecutando el pipeline")
     return redirect(url_for('main_bp.index'))
-    
+
+  
 @main_bp.route('/upload', methods=['POST'])
 def upload_file():
     if 'json_file' not in request.files:

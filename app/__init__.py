@@ -4,6 +4,7 @@ from config import SECRET_KEY  # Importa las variables globales definidas en con
 from pyspark.sql import SparkSession
 from src.utils.logger import get_logger, WebLogHandler
 
+
 def create_app():
     # Configurar la aplicación Flask y especificar la carpeta de templates si no es la por defecto
     app = Flask(__name__, template_folder='templates')
@@ -24,7 +25,7 @@ def create_app():
     # Registrar Blueprints
     from app.routes.main_routes import main_bp
     app.register_blueprint(main_bp)
-
+   
+    return app
   
 
-    return app

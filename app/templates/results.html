@@ -21,15 +21,15 @@
   <nav class="bg-white shadow" style="margin-bottom: 120px; padding: 10px 0;">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
       <div class="flex-shrink-0">
-        <a href="{{ url_for('index') }}">
+        <a href="{{ url_for('main_bp.index') }}">
           <img class="h-10" src="{{ url_for('static', filename='images/logo.png') }}" alt="Company Logo">
         </a>
       </div>
       <div class="hidden md:block">
         <div class="ml-10 flex space-x-4">
-          <a href="{{ url_for('index') }}"
+          <a href="{{ url_for('main_bp.index') }}"
             class="font-medium rounded-lg px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900">Inicio</a>
-          <a href="{{ url_for('results') }}"
+          <a href="{{ url_for('main_bp.results') }}"
             class="font-medium rounded-lg px-3 py-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900">Resultados</a>
         </div>
       </div>
