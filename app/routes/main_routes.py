@@ -12,14 +12,23 @@ main_bp = Blueprint('main_bp', __name__)
 
 # Rutas del blueprint (Ejemplo: la página principal)
 
+from flask import current_app, render_template
+from config import INPUT_FOLDER, METADATA_PATH
+
 @main_bp.route('/')
 def index():
-    # Listar archivos en el directorio de entrada que ahora definimos como config.py
-    from config import INPUT_FOLDER, METADATA_PATH # Importamos constantes globales
+    # Listar archivos en el directorio de entrada definido en config.py
     file_list = os.listdir(INPUT_FOLDER) if os.path.exists(INPUT_FOLDER) else []
     metadata_filename = os.path.basename(METADATA_PATH) if os.path.exists(METADATA_PATH) else "No se encontró metadata."
-    logs = main_bp.current_app.logs[-50:] if hasattr (main_bp, 'current_app') and main_bp.current_app.logs else []
-    return render_template('index.html', logs = logs, file_list=file_list, metadata_filename=metadata_filename)    
+    
+    # Obtener los últimos 50 logs desde current_app
+    logs = current_app.logs[-50:] if hasattr(current_app, "logs") else []
+    
+    return render_template('index.html',
+                           logs=logs,
+                           file_list=file_list,
+                           metadata_filename=metadata_filename)
+    
 
 @main_bp.route('/run')
 def run_pipeline():
