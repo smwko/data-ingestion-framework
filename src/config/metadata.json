@@ -27,6 +27,12 @@
                                 "validations": [
                                     "notNull"
                                 ]
+                            },
+                            {
+                                "field": "name",
+                                "validations": [
+                                    "notNull"
+                                ]
                             }
                         ]
                     }
